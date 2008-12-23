@@ -1,3 +1,8 @@
+2008-12-23  Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+
+	* snippet-proposal.c, gsc-snippets-provider.c:
+	Adapted to gtksourcecompletion 0.6.0
+
 2008-10-04  Chuchi  <perriman@homer>
 
 	* plugin: Added "gedit_doc" to snippets functions to test this

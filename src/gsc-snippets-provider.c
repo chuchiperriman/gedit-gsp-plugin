@@ -31,8 +31,6 @@
 #include "snippet-proposal.h"
 
 #define ICON_FILE ICON_DIR"/snippets.png"
-#define PAGE_NAME "Snippets"
-
 
 /* Signals */
 enum
@@ -97,25 +95,6 @@ parser_end_cb(GtkSnippetsInPlaceParser *parser, gpointer user_data)
 {
 	g_signal_emit (G_OBJECT (user_data), signals[PARSER_END], 0);
 }
-
-static gboolean
-_apply_cd(GscProposal* proposal, GtkTextView *view, gpointer user_data)
-{
-	GscSnippetsProvider *self = GSC_SNIPPETS_PROVIDER(user_data);
-	SnippetProposal *prop = SNIPPET_PROPOSAL(proposal);
-	GSnippetsItem* snippet = gsnippets_db_load(
-			self->priv->db,
-			snippet_proposal_get_id(prop));
-	g_assert(snippet!=NULL);
-	
-	const gchar* content = gsnippets_item_get_content(snippet);
-	gsc_replace_actual_word(self->priv->view,"");
-	gboolean parser_active = gtksnippets_inplaceparser_activate(self->priv->parser,content);
-	
-	g_object_unref(snippet);
-	return TRUE;
-}
-
 
 static const gchar* gsc_snippets_provider_real_get_name (GscProvider* self)
 {
@@ -186,17 +165,11 @@ gsc_snippets_provider_real_get_data (GscProvider* base, GscTrigger *trigger)
 				markup = _get_item_info_markup(snippet);
 				item = GSC_PROPOSAL(snippet_proposal_new(name,
 							markup,
-							(gpointer)self->priv->icon,
-							gsnippets_item_get_id(snippet)));
+							self->priv->icon,
+							gsnippets_item_get_id(snippet),
+							self->priv->db,
+							self->priv->parser));
 				
-				gsc_proposal_set_page_name(item,
-							     PAGE_NAME);
-				
-				g_signal_connect(item, 
-					 "apply",
-					 G_CALLBACK(_apply_cd),
-					 self);
-		
 				item_list = g_list_append(item_list,item);
 				g_free(markup);
 			}

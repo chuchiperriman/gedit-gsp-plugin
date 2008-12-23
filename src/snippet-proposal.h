@@ -23,6 +23,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtksourcecompletion/gsc-proposal.h>
+#include <gtksnippets/gtksnippets-inplaceparser.h>
 
 G_BEGIN_DECLS
 
@@ -42,6 +43,8 @@ typedef struct _SnippetProposalClass SnippetProposalClass;
 struct _SnippetProposal {
 	GscProposal parent;
 	gint id;
+	GSnippetsDb *db;
+	GtkSnippetsInPlaceParser *parser;
 };
 
 struct _SnippetProposalClass {
@@ -55,9 +58,11 @@ snippet_proposal_get_id(SnippetProposal *self);
 
 SnippetProposal*
 snippet_proposal_new(const gchar *label,
-				   const gchar *info,
-				   const GdkPixbuf *icon,
-				   gint id);
+		     const gchar *info,
+		     const GdkPixbuf *icon,
+		     gint id,
+		     GSnippetsDb *db,
+		     GtkSnippetsInPlaceParser *parser);
 
 G_END_DECLS
 
