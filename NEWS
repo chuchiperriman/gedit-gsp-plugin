@@ -1,0 +1,16 @@
+====================
+gedit-plugin 0.1.1
+====================
+
+New features and fixes
+======================
+- Use new in-place variable replacement.
+- Adapted to GtkSourceCompletion 0.5.0
+
+====================
+gedit-plugin 0.1.0
+====================
+
+New features and fixes
+======================
+- First gedit plugin version using GtkSourceCompletion and GtkSnippets libraries.

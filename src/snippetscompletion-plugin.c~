@@ -1,0 +1,311 @@
+/*
+ * snippetscompletion-plugin.c - Adds (auto)completion support to gedit
+ *
+ * Copyright (C) 2007 - chuchiperriman
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "snippetscompletion-plugin.h"
+#include "gsc-snippets-provider.h"
+
+#include <gdk/gdk.h>
+#include <glib/gi18n-lib.h>
+#include <gedit/gedit-debug.h>
+#include <gmodule.h>
+#include <gtksourcecompletion/gsc-manager.h>
+#include <gtksourcecompletion/gsc-trigger.h>
+#include <gtksourcecompletion/gsc-trigger-customkey.h>
+
+#define WINDOW_DATA_KEY	"SnippetscompletionPluginWindowData"
+
+#define SNIPPETSCOMPLETION_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), TYPE_SNIPPETSCOMPLETION_PLUGIN, SnippetscompletionPluginPrivate))
+
+struct _SnippetscompletionPluginPrivate
+{
+	GeditWindow *gedit_window;
+	GtkWidget *statusbar;
+	guint context_id;
+};
+
+typedef struct _ViewAndCompletion ViewAndCompletion;
+
+typedef struct
+{
+	GtkActionGroup *action_group;
+	guint           ui_id;
+} WindowData;
+
+GEDIT_PLUGIN_REGISTER_TYPE (SnippetscompletionPlugin, snippetscompletion_plugin)
+
+//TODO Borrar esto y hacerlo bien
+static GeditWindow *stwindow = NULL;
+static gchar* current_doc_func (GList *args,
+				const gchar *value,
+                                GError **error)
+{
+
+	//TODO Hacerlo bien!!!!!!
+	GeditDocument *current_doc;
+	current_doc = gedit_window_get_active_document(stwindow);
+	return gedit_document_get_short_name_for_display(current_doc);
+}
+
+static void
+snippetscompletion_plugin_init (SnippetscompletionPlugin *plugin)
+{
+	plugin->priv = SNIPPETSCOMPLETION_PLUGIN_GET_PRIVATE (plugin);
+
+	gedit_debug_message (DEBUG_PLUGINS,
+			     "SnippetscompletionPlugin initializing");
+	/* Register the gedit snippets functions */
+	gsnippets_func_manager_register_func("gedit_doc",current_doc_func);
+}
+
+static void
+snippetscompletion_plugin_finalize (GObject *object)
+{
+	gedit_debug_message (DEBUG_PLUGINS,
+			     "SnippetscompletionPlugin finalizing");
+	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)object;
+	G_OBJECT_CLASS (snippetscompletion_plugin_parent_class)->finalize (object);
+}
+
+static void
+_window_destroy_cb(GtkWidget *w, gpointer user_data)
+{
+	gtk_widget_destroy(w);
+}
+
+static void
+open_snippets_manager_cb (GtkAction   *action,
+               gpointer user_data)
+{
+	g_debug("Open Snippets Manager");
+	GtkWidget *w = GTK_WIDGET(gtksnippets_dialog_new());
+	/* Signals */
+	g_signal_connect(
+		w,
+		"destroy",
+		G_CALLBACK(_window_destroy_cb),
+		NULL);
+	g_signal_connect(
+		w,
+		"hide",
+		G_CALLBACK(_window_destroy_cb),
+		NULL);
+		
+	gtk_widget_show_all(w);
+
+}
+
+static void
+parser_start_cb(GscSnippetsProvider *provider, gpointer user_data)
+{
+	SnippetscompletionPlugin *dw_plugin = (SnippetscompletionPlugin*)user_data;
+	gtk_statusbar_push(GTK_STATUSBAR(dw_plugin->priv->statusbar),
+			   dw_plugin->priv->context_id,
+			   "Parsing On");
+}
+
+static void
+parser_end_cb(GscSnippetsProvider *provider, gpointer user_data)
+{
+	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)user_data;
+	gtk_statusbar_pop(GTK_STATUSBAR(dw_plugin->priv->statusbar),
+			  dw_plugin->priv->context_id);
+}
+
+static void
+free_window_data (WindowData *data)
+{
+	g_return_if_fail (data != NULL);
+	g_free (data);
+}
+
+static const GtkActionEntry action_entries[] =
+{
+	{ "SnippetsManager", NULL, N_("Snippets Manager"), NULL,
+	  N_("Opens Snippets Manager dialog to add/remove snippets"),
+	  G_CALLBACK (open_snippets_manager_cb) }
+};
+
+const gchar submenu[] =
+"<ui>"
+"  <menubar name='MenuBar'>"
+"    <menu name='EditMenu' action='Edit'>"
+"      <placeholder name='EditOps_6'>"
+"        <menuitem action='SnippetsManager'/>"
+"      </placeholder>"
+"    </menu>"
+"  </menubar>"
+"</ui>";
+
+static void
+impl_activate (GeditPlugin *plugin,
+	       GeditWindow *window)
+{
+	window = 
+	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)plugin;
+	dw_plugin->priv->gedit_window = window;
+	gedit_debug (DEBUG_PLUGINS);
+	
+	/**********Adding menu items*************/
+	GtkUIManager *manager;
+	WindowData *data;
+	GError *error = NULL;
+	
+	data = g_new (WindowData, 1);
+
+	manager = gedit_window_get_ui_manager (window);
+
+	data->action_group = gtk_action_group_new ("SnippetscompletionPluginActions");
+	
+	gtk_action_group_set_translation_domain (data->action_group, 
+						 GETTEXT_PACKAGE);
+	gtk_action_group_add_actions (data->action_group,
+				      action_entries,
+				      G_N_ELEMENTS (action_entries), 
+				      window);
+
+	gtk_ui_manager_insert_action_group (manager, data->action_group, -1);
+
+	data->ui_id = gtk_ui_manager_add_ui_from_string (manager,
+							 submenu,
+							 -1,
+							 &error);
+	if (data->ui_id == 0)
+	{
+		g_warning (error->message);
+		return;
+	}
+
+	g_object_set_data_full (G_OBJECT (window), 
+				WINDOW_DATA_KEY, 
+				data,
+				(GDestroyNotify) free_window_data);
+	
+	/********* Adding statusbar ************/
+	GtkWidget *gedit_statusbar = gedit_window_get_statusbar(window);
+	dw_plugin->priv->statusbar = gtk_statusbar_new ();
+        gtk_widget_show (dw_plugin->priv->statusbar);
+        gtk_widget_set_size_request (dw_plugin->priv->statusbar,
+                                     100,
+                                     10);
+        gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (dw_plugin->priv->statusbar),
+                                           FALSE);
+        gtk_box_pack_end (GTK_BOX (gedit_statusbar),
+                          dw_plugin->priv->statusbar,
+                          FALSE, TRUE, 0);
+        dw_plugin->priv->context_id =
+        	 gtk_statusbar_get_context_id(GTK_STATUSBAR (dw_plugin->priv->statusbar),
+        	 				"Parser Status Bar");
+}
+
+static void
+impl_deactivate (GeditPlugin *plugin,
+		 GeditWindow *window)
+{
+	gedit_debug (DEBUG_PLUGINS);
+	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)plugin;
+	GtkUIManager *manager;
+	WindowData *data;
+	manager = gedit_window_get_ui_manager (window);
+
+	data = (WindowData *) g_object_get_data (G_OBJECT (window), WINDOW_DATA_KEY);
+	g_return_if_fail (data != NULL);
+
+	gtk_ui_manager_remove_ui (manager, data->ui_id);
+	gtk_ui_manager_remove_action_group (manager, data->action_group);
+
+	g_object_set_data (G_OBJECT (window), WINDOW_DATA_KEY, NULL);	
+	
+	GtkWidget *gedit_statusbar = gedit_window_get_statusbar(window);
+	gtk_container_remove(GTK_CONTAINER(gedit_statusbar),dw_plugin->priv->statusbar);
+}
+
+static void
+impl_update_ui (GeditPlugin *plugin,
+		GeditWindow *window)
+{
+	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)plugin;
+	dw_plugin->priv->gedit_window = window;
+	gedit_debug (DEBUG_PLUGINS);
+	GtkTextView* view = GTK_TEXT_VIEW(gedit_window_get_active_view(window));
+	if (view!=NULL)
+	{
+		GscManager *comp = gsc_manager_get_from_view(view);
+		if (comp==NULL)
+		{
+			comp = gsc_manager_new(GTK_TEXT_VIEW(view));
+		}
+
+		if (gsc_manager_get_provider(comp,GSC_SNIPPETS_PROVIDER_NAME)==NULL)
+		{
+			GscTrigger *ur_trigger = 
+				gsc_manager_get_trigger(comp,USER_REQUEST_TRIGGER_NAME);
+			
+			if (ur_trigger==NULL)
+			{
+				g_debug("registrando desde snippets");
+				ur_trigger = GSC_TRIGGER(gsc_trigger_customkey_new(comp,
+					USER_REQUEST_TRIGGER_NAME,
+					"<control>Return"));
+				gsc_manager_register_trigger(comp,ur_trigger);
+				g_object_unref(ur_trigger);
+			}
+			
+			GscSnippetsProvider *dw  = gsc_snippets_provider_new(view);
+			g_signal_connect(dw,"parser-start",G_CALLBACK(parser_start_cb),dw_plugin);
+			g_signal_connect(dw,"parser-end",G_CALLBACK(parser_end_cb),dw_plugin);
+			gsc_manager_register_provider(comp,GSC_PROVIDER(dw),USER_REQUEST_TRIGGER_NAME);
+			gsc_manager_activate(comp);
+			
+			g_debug("Snippets provider registered");
+		}
+
+	}
+}
+
+/*************** Configuration window ****************/
+
+
+
+static GtkWidget*
+create_configure_dialog(GeditPlugin *plugin)
+{
+	return NULL;
+}
+
+static void
+snippetscompletion_plugin_class_init (SnippetscompletionPluginClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GeditPluginClass *plugin_class = GEDIT_PLUGIN_CLASS (klass);
+
+	object_class->finalize = snippetscompletion_plugin_finalize;
+
+	plugin_class->activate = impl_activate;
+	plugin_class->deactivate = impl_deactivate;
+	plugin_class->update_ui = impl_update_ui;
+	//plugin_class->create_configure_dialog = create_configure_dialog;
+
+	g_type_class_add_private (object_class, 
+				  sizeof (SnippetscompletionPluginPrivate));
+}

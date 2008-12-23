@@ -1,0 +1,67 @@
+2008-10-04  Chuchi  <perriman@homer>
+
+	* plugin: Added "gedit_doc" to snippets functions to test this
+	feature. We need to change when the snippets function API will be
+	closed
+
+2008-09-04  Chuchi  <perriman@homer>
+
+	* provider: Use the new USER_REQUEST_TRIGGER_NAME and check if someone
+	has added it to the completion. If the trigger doesn't exists we
+	register it, if foesn't we use the current user request trigger.
+
+=== version 0.1.1 ===
+
+2008-08-19  Chuchi  <perriman@homer>
+
+	* Release: Closed 0.1.1
+
+2008-06-30  Chuchi  <perriman@homer>
+
+	* providers: Adapted to the new gsc API
+
+2008-06-28  Chuchi  <perriman@homer>
+
+	* plugin: Create a new status var and set "Parsing On" when the
+	inplace parser is active
+	* provider: 
+		- Propagate parser-start and parser-end parser signals
+		- Uses the new inplace parser!!
+
+
+2008-06-07  Chuchi  <perriman@homer>
+
+	* provider: Adapted to the new API
+	* snippets-proposal: Created a subclass of GtkSourceCompletionProposal
+	to set the item database id.
+	* dependencies: DEPENDENCY OF gtksourcecompletion 0.5.0
+
+2008-04-05  perriman  <perriman@portatil>
+
+	* dependencies: DEPENDENCY OF GtkSourceCompletion 0.4.1. Adapted to the
+    new API changes.
+
+2008-03-08  perriman  <perriman@portatil>
+
+	* fixed #1909916: Added the snippets icon
+	* provider: Added snippets info
+
+2008-03-05  perriman  <perriman@portatil>
+
+	* provider: Filtering snippets by language
+
+2008-02-27  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* m4/gettext.m4: New file, from gettext-0.16.1.
+	* m4/iconv.m4: New file, from gettext-0.16.1.
+	* m4/lib-ld.m4: New file, from gettext-0.16.1.
+	* m4/lib-link.m4: New file, from gettext-0.16.1.
+	* m4/lib-prefix.m4: New file, from gettext-0.16.1.
+	* m4/nls.m4: New file, from gettext-0.16.1.
+	* m4/po.m4: New file, from gettext-0.16.1.
+	* m4/progtest.m4: New file, from gettext-0.16.1.
+	* Makefile.am (EXTRA_DIST): Add config.rpath.
+
+2008-02-26  Jesús Barbero  <chuchiperriman@gmail.com>
+
+	Initial release

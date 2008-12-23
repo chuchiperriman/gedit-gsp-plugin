@@ -1,0 +1,9 @@
+[Gedit Plugin]
+Module=snippetscompletion
+IAge=2
+_Name=Snippets Completion
+_Description=Adds snippet (auto)completion support to gedit
+Icon=gedit-plugin
+Authors=chuchiperriman <chuchiperriman@gmail.com>
+Copyright=Copyright © 2007 chuchiperriman
+Website=http://www.gedit.org

@@ -1,0 +1,23 @@
+Source: gedit-snippetscompletion-plugin
+Section: gnome
+Priority: optional
+Maintainer: Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+Build-Depends: cdbs,
+               debhelper (>= 5),
+               gconf2,
+               libglib2.0-dev (>= 2.8.0),
+               libgtk2.0-dev (>= 2.8.0),
+               libgtksourcecompletion1.0-dev (>= 0.5.0),
+               libgtksnippets1.0-dev (>= 0.1.1),
+               gedit (>= 2.20.0),
+               gnome-doc-utils (>= 0.3.2),
+               gnome-pkg-tools (>= 0.11)
+Standards-Version: 3.8.0
+
+Package: gedit-docwordscompletion-plugin
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Plugin to add document words completion support to gedit.
+ .
+ This plugin adds open documents completion and recent documents completion
