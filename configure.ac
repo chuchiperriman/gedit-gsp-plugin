@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 GEDIT_MAJOR=2.20.0
 GEDIT_PLUGINS_MAJOR=2.20.0
 
-AC_INIT(gedit-gsp-plugin, 0.2.0, http://sourceforge.net/projects/gtksourcecomple)
+AC_INIT(gedit-gsp-plugin, 0.3.0, http://sourceforge.net/projects/gtksourcecomple)
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([m4])
@@ -54,7 +54,7 @@ PKG_CHECK_MODULES(GEDIT, [
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gtksnippets-1.0 >= 0.1.0
 ])
 GEDIT_LIBS="${GEDIT_LIBS}"

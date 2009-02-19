@@ -29,7 +29,7 @@
 #include <glib/gi18n-lib.h>
 #include <gedit/gedit-debug.h>
 #include <gmodule.h>
-#include <gtksourcecompletion/gsc-manager.h>
+#include <gtksourcecompletion/gsc-completion.h>
 #include <gtksourcecompletion/gsc-trigger.h>
 #include <gtksourcecompletion/gsc-trigger-customkey.h>
 
@@ -250,16 +250,16 @@ impl_update_ui (GeditPlugin *plugin,
 	GtkTextView* view = GTK_TEXT_VIEW(gedit_window_get_active_view(window));
 	if (view!=NULL)
 	{
-		GscManager *comp = gsc_manager_get_from_view(view);
+		GscCompletion *comp = gsc_completion_get_from_view(view);
 		if (comp==NULL)
 		{
-			comp = gsc_manager_new(GTK_TEXT_VIEW(view));
+			comp = GSC_COMPLETION (gsc_completion_new(GTK_TEXT_VIEW(view)));
 		}
 
-		if (gsc_manager_get_provider(comp,GSC_SNIPPETS_PROVIDER_NAME)==NULL)
+		if (gsc_completion_get_provider(comp,GSC_SNIPPETS_PROVIDER_NAME)==NULL)
 		{
 			GscTrigger *ur_trigger = 
-				gsc_manager_get_trigger(comp,USER_REQUEST_TRIGGER_NAME);
+				gsc_completion_get_trigger(comp,USER_REQUEST_TRIGGER_NAME);
 			
 			if (ur_trigger==NULL)
 			{
@@ -267,15 +267,15 @@ impl_update_ui (GeditPlugin *plugin,
 				ur_trigger = GSC_TRIGGER(gsc_trigger_customkey_new(comp,
 					USER_REQUEST_TRIGGER_NAME,
 					"<control>Return"));
-				gsc_manager_register_trigger(comp,ur_trigger);
+				gsc_completion_register_trigger(comp,ur_trigger);
 				g_object_unref(ur_trigger);
 			}
 			
 			GscSnippetsProvider *dw  = gsc_snippets_provider_new(view);
 			g_signal_connect(dw,"parser-start",G_CALLBACK(parser_start_cb),dw_plugin);
 			g_signal_connect(dw,"parser-end",G_CALLBACK(parser_end_cb),dw_plugin);
-			gsc_manager_register_provider(comp,GSC_PROVIDER(dw),USER_REQUEST_TRIGGER_NAME);
-			gsc_manager_activate(comp);
+			gsc_completion_register_provider(comp,GSC_PROVIDER(dw),ur_trigger);
+			gsc_completion_activate(comp);
 			
 			g_debug("Snippets provider registered");
 		}

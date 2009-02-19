@@ -19,7 +19,7 @@
 
 GETTEXT_PACKAGE = gedit-gsp-plugin
 PACKAGE = gedit-gsp-plugin
-VERSION = 0.2.0
+VERSION = 0.3.0
 
 SHELL = /bin/sh
 

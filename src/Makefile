@@ -116,8 +116,8 @@ EGREP = /bin/grep -E
 EXEEXT = 
 FGREP = /bin/grep -F
 GCONFTOOL = /usr/bin/gconftool-2
-GEDIT_CFLAGS = -pthread -DORBIT2=1 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/gtksourceview-2.0 -I/usr/include/libxml2 -I/usr/include/gedit-2.20 -I/usr/include/libglade-2.0 -I/usr/include/gnome-vfs-2.0 -I/usr/lib/gnome-vfs-2.0/include -I/usr/include/gconf/2 -I/usr/include/orbit-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/gtksourcecompletion-1.0 -I/usr/include/gtksnippets-1.0 -I/usr/include/gsnippets-1.0  
-GEDIT_LIBS = -pthread -lglade-2.0 -lxml2 -lgnomevfs-2 -lgconf-2 -lgthread-2.0 -lrt -lgtksourcecompletion-1.0 -lgtksnippets-1.0 -lgsnippets-1.0 -lgtksourceview-2.0 -lsqlite3 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lgio-2.0 -lcairo -lpango-1.0 -lfreetype -lz -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
+GEDIT_CFLAGS = -pthread -DORBIT2=1 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/gtksourceview-2.0 -I/usr/include/libxml2 -I/usr/include/gedit-2.20 -I/usr/include/libglade-2.0 -I/usr/include/gnome-vfs-2.0 -I/usr/lib/gnome-vfs-2.0/include -I/usr/include/gconf/2 -I/usr/include/orbit-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include -I/usr/include/gtksourcecompletion-2.0 -I/usr/include/gtksnippets-1.0 -I/usr/include/gsnippets-1.0  
+GEDIT_LIBS = -pthread -lglade-2.0 -lxml2 -lgnomevfs-2 -lgconf-2 -lgthread-2.0 -lrt -lgtksourcecompletion-2.0 -lgtksnippets-1.0 -lgsnippets-1.0 -lgtksourceview-2.0 -lsqlite3 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lgio-2.0 -lcairo -lpango-1.0 -lfreetype -lz -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
 GEDIT_PLUGINS_MAJOR = 
 GETTEXT_PACKAGE = gedit-gsp-plugin
 GLIB_GENMARSHAL = /usr/bin/glib-genmarshal
@@ -179,9 +179,9 @@ OTOOL64 =
 PACKAGE = gedit-gsp-plugin
 PACKAGE_BUGREPORT = http://sourceforge.net/projects/gtksourcecomple
 PACKAGE_NAME = gedit-gsp-plugin
-PACKAGE_STRING = gedit-gsp-plugin 0.2.0
+PACKAGE_STRING = gedit-gsp-plugin 0.3.0
 PACKAGE_TARNAME = gedit-gsp-plugin
-PACKAGE_VERSION = 0.2.0
+PACKAGE_VERSION = 0.3.0
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PLUGIN_LIBTOOL_FLAGS = -module -avoid-version
@@ -195,7 +195,7 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = strip
 USE_NLS = yes
-VERSION = 0.2.0
+VERSION = 0.3.0
 XGETTEXT = /usr/bin/xgettext
 abs_builddir = /home/perriman/dev/git/gedit-gsp-plugin/src
 abs_srcdir = /home/perriman/dev/git/gedit-gsp-plugin/src
@@ -256,7 +256,7 @@ INCLUDES = \
 	$(WARN_CFLAGS)							\
 	$(DISABLE_DEPRECATED_CFLAGS)					\
 	-DICON_DIR=\""$(datadir)/gedit-snippetscompletion-plugin/pixmaps"\" \
-	`pkg-config --cflags gtksourcecompletion-1.0`			\
+	`pkg-config --cflags gtksourcecompletion-2.0`			\
 	`pkg-config --cflags gtksnippets-1.0` 	\
 	-DGEDIT_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"
 
@@ -269,7 +269,7 @@ libsnippetscompletion_la_SOURCES = \
 	gsc-snippets-provider.h		\
 	gsc-snippets-provider.c
 
-libsnippetscompletion_la_LDFLAGS = $(PLUGIN_LIBTOOL_FLAGS) `pkg-config --libs gtksourcecompletion-1.0` `pkg-config --libs gtksnippets-1.0`
+libsnippetscompletion_la_LDFLAGS = $(PLUGIN_LIBTOOL_FLAGS) `pkg-config --libs gtksourcecompletion-2.0` `pkg-config --libs gtksnippets-1.0`
 
 # Glade files (if you use glade for your plugin, list those files here)
 gladedir = $(datadir)/gedit-2/glade
