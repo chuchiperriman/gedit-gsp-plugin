@@ -32,6 +32,8 @@
 #include <gtksourcecompletion/gsc-completion.h>
 #include <gtksourcecompletion/gsc-trigger.h>
 #include <gtksourcecompletion/gsc-trigger-customkey.h>
+#include <gsnippets/gsnippets-func-manager.h>
+#include <gtksnippets/gtksnippets-dialog.h>
 
 #define WINDOW_DATA_KEY	"SnippetscompletionPluginWindowData"
 
@@ -58,6 +60,7 @@ GEDIT_PLUGIN_REGISTER_TYPE (SnippetscompletionPlugin, snippetscompletion_plugin)
 static GeditWindow *stwindow = NULL;
 static gchar* current_doc_func (GList *args,
 				const gchar *value,
+				gpointer user_data,
                                 GError **error)
 {
 
@@ -75,7 +78,7 @@ snippetscompletion_plugin_init (SnippetscompletionPlugin *plugin)
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "SnippetscompletionPlugin initializing");
 	/* Register the gedit snippets functions */
-	gsnippets_func_manager_register_func("gedit_doc",current_doc_func);
+	gsnippets_func_manager_register_func("gedit_doc",current_doc_func, NULL);
 }
 
 static void
@@ -83,7 +86,6 @@ snippetscompletion_plugin_finalize (GObject *object)
 {
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "SnippetscompletionPlugin finalizing");
-	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)object;
 	G_OBJECT_CLASS (snippetscompletion_plugin_parent_class)->finalize (object);
 }
 
@@ -192,7 +194,7 @@ impl_activate (GeditPlugin *plugin,
 							 &error);
 	if (data->ui_id == 0)
 	{
-		g_warning (error->message);
+		g_warning ("%s",error->message);
 		return;
 	}
 
@@ -275,7 +277,7 @@ impl_update_ui (GeditPlugin *plugin,
 			g_signal_connect(dw,"parser-start",G_CALLBACK(parser_start_cb),dw_plugin);
 			g_signal_connect(dw,"parser-end",G_CALLBACK(parser_end_cb),dw_plugin);
 			gsc_completion_register_provider(comp,GSC_PROVIDER(dw),ur_trigger);
-			gsc_completion_activate(comp);
+			gsc_completion_set_active(comp, TRUE);
 			
 			g_debug("Snippets provider registered");
 		}
@@ -285,13 +287,6 @@ impl_update_ui (GeditPlugin *plugin,
 
 /*************** Configuration window ****************/
 
-
-
-static GtkWidget*
-create_configure_dialog(GeditPlugin *plugin)
-{
-	return NULL;
-}
 
 static void
 snippetscompletion_plugin_class_init (SnippetscompletionPluginClass *klass)

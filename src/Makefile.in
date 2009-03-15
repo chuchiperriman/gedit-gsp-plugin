@@ -260,6 +260,10 @@ INCLUDES = \
 	`pkg-config --cflags gtksnippets-1.0` 	\
 	-DGEDIT_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"
 
+AM_CFLAGS = \
+         -Wall\
+         -g
+
 plugin_LTLIBRARIES = libsnippetscompletion.la
 libsnippetscompletion_la_SOURCES = \
 	snippet-proposal.h		\

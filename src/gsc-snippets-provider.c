@@ -56,8 +56,6 @@ enum  {
 static const gchar* gsc_snippets_provider_real_get_name (GscProvider* self);
 static GList* gsc_snippets_provider_real_get_data (GscProvider* base, GscTrigger *trigger);
 static void gsc_snippets_provider_real_end_completion (GscProvider* base);
-static void gsc_snippets_provider_real_data_selected (GscProvider* base, GscProposal* data);
-static gchar* gsc_snippets_provider_real_get_item_info_markup (GscProvider *self, GscProposal *item);
 static gpointer gsc_snippets_provider_parent_class = NULL;
 static GscProviderIface* gsc_snippets_provider_gtk_source_completion_provider_parent_iface = NULL;
 
@@ -189,10 +187,6 @@ gsc_snippets_provider_real_get_data (GscProvider* base, GscTrigger *trigger)
 static void gsc_snippets_provider_real_end_completion (GscProvider* base)
 {
 
-}
-
-static void gsc_snippets_provider_real_data_free (GscProvider* self, GscProposal* data)
-{
 }
 
 static void gsc_snippets_provider_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec)

@@ -20,6 +20,7 @@
 #include <glib/gprintf.h>
 #include <string.h>
 #include <gsnippets/gsnippets-db.h>
+#include <gtksourcecompletion/gsc-utils.h>
 #include "snippet-proposal.h"
 
 #define PAGE_NAME "Snippets"
@@ -36,8 +37,8 @@ snippet_proposal_apply(GscProposal* proposal, GtkTextView *view)
 	
 	const gchar* content = gsnippets_item_get_content(snippet);
 	gsc_replace_actual_word(view,"");
-	gboolean parser_active = gtksnippets_inplaceparser_activate (self->parser,
-								     content);
+	gtksnippets_inplaceparser_activate (self->parser,
+					    content);
 	
 	g_object_unref(snippet);
 	return TRUE;
