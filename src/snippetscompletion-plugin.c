@@ -31,7 +31,7 @@
 #include <gmodule.h>
 #include <gtksourcecompletion/gsc-completion.h>
 #include <gtksourcecompletion/gsc-trigger.h>
-#include <gtksourcecompletion/gsc-trigger-customkey.h>
+#include <gtksourcecompletion/gsc-trigger-userrequest.h>
 #include <gsnippets/gsnippets-func-manager.h>
 #include <gtksnippets/gtksnippets-dialog.h>
 
@@ -261,14 +261,12 @@ impl_update_ui (GeditPlugin *plugin,
 		if (gsc_completion_get_provider(comp,GSC_SNIPPETS_PROVIDER_NAME)==NULL)
 		{
 			GscTrigger *ur_trigger = 
-				gsc_completion_get_trigger(comp,USER_REQUEST_TRIGGER_NAME);
+				gsc_completion_get_trigger(comp,GSC_TRIGGER_USERREQUEST_NAME);
 			
 			if (ur_trigger==NULL)
 			{
 				g_debug("registrando desde snippets");
-				ur_trigger = GSC_TRIGGER(gsc_trigger_customkey_new(comp,
-					USER_REQUEST_TRIGGER_NAME,
-					"<control>Return"));
+				ur_trigger = GSC_TRIGGER(gsc_trigger_userrequest_new(comp));
 				gsc_completion_register_trigger(comp,ur_trigger);
 				g_object_unref(ur_trigger);
 			}
