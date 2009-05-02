@@ -1,0 +1,9 @@
+[Gedit Plugin]
+Module=gsp
+IAge=2
+_Name=Snippets Completion Plugin
+_Description=Adds snippets completion support to gedit
+Icon=gedit-plugin
+Authors=Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+Copyright=Copyright © 2009 chuchiperriman
+Website=http://www.gedit.org

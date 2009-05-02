@@ -23,15 +23,12 @@
 #endif
 
 #include "snippetscompletion-plugin.h"
-#include "gsc-snippets-provider.h"
+#include "gsp-provider-snippets.h"
 
 #include <gdk/gdk.h>
 #include <glib/gi18n-lib.h>
 #include <gedit/gedit-debug.h>
 #include <gmodule.h>
-#include <gtksourcecompletion/gsc-completion.h>
-#include <gtksourcecompletion/gsc-trigger.h>
-#include <gtksourcecompletion/gsc-trigger-userrequest.h>
 #include <gsnippets/gsnippets-func-manager.h>
 #include <gtksnippets/gtksnippets-dialog.h>
 
@@ -118,7 +115,7 @@ open_snippets_manager_cb (GtkAction   *action,
 }
 
 static void
-parser_start_cb(GscSnippetsProvider *provider, gpointer user_data)
+parser_start_cb(GspProviderSnippets *provider, gpointer user_data)
 {
 	SnippetscompletionPlugin *dw_plugin = (SnippetscompletionPlugin*)user_data;
 	gtk_statusbar_push(GTK_STATUSBAR(dw_plugin->priv->statusbar),
@@ -127,7 +124,7 @@ parser_start_cb(GscSnippetsProvider *provider, gpointer user_data)
 }
 
 static void
-parser_end_cb(GscSnippetsProvider *provider, gpointer user_data)
+parser_end_cb(GspProviderSnippets *provider, gpointer user_data)
 {
 	SnippetscompletionPlugin * dw_plugin = (SnippetscompletionPlugin*)user_data;
 	gtk_statusbar_pop(GTK_STATUSBAR(dw_plugin->priv->statusbar),
