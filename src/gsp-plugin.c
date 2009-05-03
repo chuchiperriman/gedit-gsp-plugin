@@ -36,8 +36,6 @@ static void open_snippets_manager_cb (GtkAction   *action, gpointer user_data);
 
 #define GSP_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), GSP_TYPE_PLUGIN, GspPluginPrivate))
 
-#define GSP_PROVIDERS_KEY "gsp-providers"
-
 const gchar submenu[] =
 "<ui>"
 "  <menubar name='MenuBar'>"
@@ -59,7 +57,10 @@ static const GtkActionEntry action_entries[] =
 struct _GspPluginPrivate
 {
 	GeditWindow *gedit_window;
-	GtkWidget *window;
+	GtkWidget *statusbar;
+	guint context_id;
+	GtkActionGroup *action_group;
+	guint ui_id;
 };
 
 typedef struct _ViewAndCompletion ViewAndCompletion;
@@ -96,6 +97,23 @@ open_snippets_manager_cb (GtkAction   *action,
 }
 
 static void
+parser_start_cb(GspProviderSnippets *provider, gpointer user_data)
+{
+	GspPlugin *self = GSP_PLUGIN (user_data);
+	gtk_statusbar_push(GTK_STATUSBAR(self->priv->statusbar),
+			   self->priv->context_id,
+			   "Parsing On");
+}
+
+static void
+parser_end_cb(GspProviderSnippets *provider, gpointer user_data)
+{
+	GspPlugin *self = GSP_PLUGIN (user_data);
+	gtk_statusbar_pop(GTK_STATUSBAR(self->priv->statusbar),
+			  self->priv->context_id);
+}
+
+static void
 gsp_plugin_init (GspPlugin *plugin)
 {
 	plugin->priv = GSP_PLUGIN_GET_PRIVATE (plugin);
@@ -116,20 +134,16 @@ tab_added_cb (GeditWindow *geditwindow,
 	      GeditTab    *tab,
 	      gpointer     user_data)
 {
-	GList *providers = NULL;
+	GspPlugin *self = GSP_PLUGIN (user_data);
 	GeditView *view = gedit_tab_get_view (tab);
 	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
 	
 	GspProviderSnippets *sp = gsp_provider_snippets_new (GTK_TEXT_VIEW (view));
 	gtk_source_completion_add_provider (comp,GTK_SOURCE_COMPLETION_PROVIDER(sp), NULL);
+	g_signal_connect(sp,"parser-start",G_CALLBACK(parser_start_cb),self);
+	g_signal_connect(sp,"parser-end",G_CALLBACK(parser_end_cb),self);
+	
 	g_object_unref(sp);
-	
-	providers = g_list_append (providers, sp);
-	
-	g_object_set_data_full (G_OBJECT (comp),
-				GSP_PROVIDERS_KEY,
-				providers,
-				(GDestroyNotify) g_list_free);
 	
 	g_debug ("snippets provider registered");
 }
@@ -138,13 +152,56 @@ static void
 impl_activate (GeditPlugin *plugin,
 	       GeditWindow *window)
 {
-	GspPlugin * dw_plugin = (GspPlugin*)plugin;
-	dw_plugin->priv->gedit_window = window;
+	GspPlugin *self = (GspPlugin*)plugin;
+	self->priv->gedit_window = window;
 	gedit_debug (DEBUG_PLUGINS);
 	
 	g_signal_connect (window, "tab-added",
 			  G_CALLBACK (tab_added_cb),
-			  NULL);
+			  self);
+	
+	/**********Adding menu items*************/
+	GtkUIManager *manager;
+	GError *error = NULL;
+	
+	manager = gedit_window_get_ui_manager (window);
+
+	self->priv->action_group = gtk_action_group_new ("GspActions");
+	
+	gtk_action_group_set_translation_domain (self->priv->action_group, 
+						 GETTEXT_PACKAGE);
+	gtk_action_group_add_actions (self->priv->action_group,
+				      action_entries,
+				      G_N_ELEMENTS (action_entries), 
+				      window);
+
+	gtk_ui_manager_insert_action_group (manager, self->priv->action_group, -1);
+
+	self->priv->ui_id = gtk_ui_manager_add_ui_from_string (manager,
+							 submenu,
+							 -1,
+							 &error);
+	if (self->priv->ui_id == 0)
+	{
+		g_warning ("UI Error: %s",error->message);
+		return;
+	}
+
+	/********* Adding statusbar ************/
+	GtkWidget *gedit_statusbar = gedit_window_get_statusbar(window);
+	self->priv->statusbar = gtk_statusbar_new ();
+        gtk_widget_show (self->priv->statusbar);
+        gtk_widget_set_size_request (self->priv->statusbar,
+                                     100,
+                                     10);
+        gtk_statusbar_set_has_resize_grip (GTK_STATUSBAR (self->priv->statusbar),
+                                           FALSE);
+        gtk_box_pack_end (GTK_BOX (gedit_statusbar),
+                          self->priv->statusbar,
+                          FALSE, TRUE, 0);
+        self->priv->context_id =
+        	 gtk_statusbar_get_context_id(GTK_STATUSBAR (self->priv->statusbar),
+        	 				"Parser Status Bar");
 
 }
 
@@ -153,6 +210,15 @@ impl_deactivate (GeditPlugin *plugin,
 		 GeditWindow *window)
 {
 	gedit_debug (DEBUG_PLUGINS);
+	GspPlugin *self = GSP_PLUGIN (plugin);
+	GtkUIManager *manager;
+	manager = gedit_window_get_ui_manager (window);
+
+	gtk_ui_manager_remove_ui (manager, self->priv->ui_id);
+	gtk_ui_manager_remove_action_group (manager, self->priv->action_group);
+
+	GtkWidget *gedit_statusbar = gedit_window_get_statusbar(window);
+	gtk_container_remove(GTK_CONTAINER(gedit_statusbar),self->priv->statusbar);
 }
 
 static void
