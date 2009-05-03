@@ -62,77 +62,6 @@ get_item_info_markup(GSnippetsItem *snippet)
 	return content;
 }
 
-static gboolean
-is_valid_word(gchar *doc_word, gchar *comp_word)
-{
-	glong len_doc,len_comp;
-	
-	
-	len_doc = g_utf8_strlen(doc_word,-1);
-	len_comp = g_utf8_strlen(comp_word,-1);
-	if (len_doc>len_comp)
-		return FALSE;
-	
-	gchar temp[len_comp+1];
-	
-	g_utf8_strncpy(temp,comp_word,len_doc);
-	if (g_utf8_collate(temp,doc_word)==0)
-	{
-		return TRUE;
-	}
-	
-	return FALSE;
-}
-
-static gboolean
-is_separator(const gunichar ch)
-{
-	if (g_unichar_isprint(ch) && 
-	    (g_unichar_isalnum(ch) || ch == g_utf8_get_char("_")))
-	{
-		return FALSE;
-	}
-	
-	return TRUE;
-}
-
-static gchar *
-get_last_word (GtkTextBuffer *source_buffer)
-{
-	GtkTextBuffer *text_buffer;
-	GtkTextIter start_word;
-	GtkTextIter end_word;
-	gunichar ch;
-	gboolean no_doc_start;
-	
-	text_buffer = GTK_TEXT_BUFFER (source_buffer);
-	
-	gtk_text_buffer_get_iter_at_mark (text_buffer,
-	                                  &start_word,
-	                                  gtk_text_buffer_get_insert (text_buffer));
-	
-	while ((no_doc_start = gtk_text_iter_backward_char (&start_word)) == TRUE)
-	{
-		ch = gtk_text_iter_get_char (&start_word);
-
-		if (is_separator (ch))
-		{
-			break;
-		}
-	}
-	
-	if (!no_doc_start)
-	{
-		gtk_text_buffer_get_start_iter (text_buffer, &start_word);
-		return gtk_text_iter_get_text (&start_word, &end_word);
-	}
-	else
-	{
-		gtk_text_iter_forward_char (&start_word);
-		return gtk_text_iter_get_text (&start_word, &end_word);
-	}
-}
-
 static void
 parser_start_cb(GtkSnippetsInPlaceParser *parser, gpointer user_data)
 {
@@ -194,8 +123,6 @@ gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
 	
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer(self->priv->view);
 	
-	gchar *current_word = get_last_word(buffer);
-	
 	GSList *list = NULL;
 	GList *item_list = NULL;
 	gchar *name;
@@ -231,29 +158,18 @@ gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
 		do{
 			snippet = (GSnippetsItem*)list_temp->data;
  			name = g_strdup(gsnippets_item_get_name(snippet));
-			/*TODO filter the selection by name instead of compare all snippet names*/
-			if (is_valid_word(current_word,name))
-			{
-				markup = get_item_info_markup(snippet);
-				
-				item = GTK_SOURCE_COMPLETION_PROPOSAL (gtk_source_completion_item_new((gchar*)name,
-							       NULL,
-							       self->priv->proposal_icon,
-							       markup));
+			/*TODO filter by current word*/
+			markup = get_item_info_markup(snippet);
+			
+			item = GTK_SOURCE_COMPLETION_PROPOSAL (gtk_source_completion_item_new((gchar*)name,
+						       NULL,
+						       self->priv->proposal_icon,
+						       markup));
 
-				g_object_set_data (G_OBJECT (item), "id", gsnippets_item_get_id(snippet));
-				
-				/*
-				item = GTK_SOURCE_COMPLETION_PROPOSAL (snippet_proposal_new(name,
-							markup,
-							self->priv->icon,
-							gsnippets_item_get_id(snippet),
-							self->priv->db,
-							self->priv->parser));
-				*/
-				item_list = g_list_append(item_list,item);
-				g_free(markup);
-			}
+			g_object_set_data (G_OBJECT (item), "id", gsnippets_item_get_id(snippet));
+			
+			item_list = g_list_append(item_list,item);
+			g_free(markup);
 			g_free(name);
 			g_object_unref(snippet);
 		}while((list_temp = g_slist_next(list_temp))!= NULL);
