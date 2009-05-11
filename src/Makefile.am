@@ -16,6 +16,8 @@ AM_CFLAGS =\
 plugin_LTLIBRARIES = libgsp.la
 
 libgsp_la_SOURCES = \
+	chcompletionutils.h		\
+	chcompletionutils.c		\
 	gsp-provider-snippets.h		\
 	gsp-provider-snippets.c		\
 	gsp-plugin.h			\

@@ -26,6 +26,8 @@
 #include <gsnippets/gsnippets-item.h>
 #include <gtksnippets/gtksnippets-inplaceparser.h>
 
+#include "chcompletionutils.h"
+
 #define GSP_PROVIDER_SNIPPETS_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), GSP_TYPE_PROVIDER_SNIPPETS, GspProviderSnippetsPrivate))
 
 /* Signals */
@@ -93,13 +95,14 @@ gsp_provider_snippets_activate_proposal (GtkSourceCompletionProvider	*provider,
 {
 	GspProviderSnippets *self = GSP_PROVIDER_SNIPPETS (provider);
 	gint id = (gint)g_object_get_data (G_OBJECT (proposal), "id");
-	
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer (self->priv->view);
+
 	GSnippetsItem* snippet = gsnippets_db_load(
 			self->priv->db,
 			id);
 	
 	const gchar* content = gsnippets_item_get_content(snippet);
-	/*TODO gsc_replace_actual_word(view,"");*/
+	ch_completion_replace_current_word (GTK_SOURCE_BUFFER (buffer), "", 0);
 	gtksnippets_inplaceparser_activate (self->priv->parser,
 					    content);
 	
@@ -111,8 +114,6 @@ gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
                                  GtkTextIter                 *iter)
 {
 	GspProviderSnippets *self = GSP_PROVIDER_SNIPPETS (base);
-	
-	g_debug("snippets get data");
 	
 	if (self->priv->parser==NULL)
 	{
@@ -175,9 +176,6 @@ gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
 		}while((list_temp = g_slist_next(list_temp))!= NULL);
 		
 		g_slist_free(list);
-		
-	}else{
-		g_debug("There are no snippets");
 	}
 
 	return item_list;
@@ -302,3 +300,4 @@ gsp_provider_snippets_new (GtkTextView *view)
 	ret->priv->view = view;
 	return ret;
 }
+
