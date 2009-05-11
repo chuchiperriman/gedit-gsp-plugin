@@ -17,6 +17,7 @@
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
 #include "gsp-provider-snippets.h"
 #include <gtksourceview/gtksourceview.h>
 #include <gtksourceview/gtksourcecompletion.h>
@@ -56,6 +57,23 @@ G_DEFINE_TYPE_WITH_CODE (GspProviderSnippets,
 			 G_TYPE_OBJECT,
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_SOURCE_COMPLETION_PROVIDER,
 				 		gsp_provider_snippets_iface_init))
+
+static gboolean
+is_valid_word(gchar *current_word, gchar *completion_word)
+{
+	if (current_word==NULL)
+		return TRUE;
+		
+	gint len_cur = strlen (current_word);
+	if (len_cur < 1)
+		return TRUE;
+	
+	if (len_cur!=0 && strncmp(current_word,completion_word,len_cur)==0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
 
 static gchar*
 get_item_info_markup(GSnippetsItem *snippet)
@@ -111,7 +129,7 @@ gsp_provider_snippets_activate_proposal (GtkSourceCompletionProvider	*provider,
 
 static GList *
 gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
-                                 GtkTextIter                 *iter)
+				     GtkTextIter                 *iter)
 {
 	GspProviderSnippets *self = GSP_PROVIDER_SNIPPETS (base);
 	
@@ -155,24 +173,28 @@ gsp_provider_snippets_get_proposals (GtkSourceCompletionProvider *base,
 	gchar *markup;
 	
 	if (list!=NULL){
-		list_temp = list;	
+		gchar *current = ch_completion_get_word (GTK_SOURCE_BUFFER (buffer));
+		list_temp = list;
 		do{
 			snippet = (GSnippetsItem*)list_temp->data;
  			name = g_strdup(gsnippets_item_get_name(snippet));
-			/*TODO filter by current word*/
-			markup = get_item_info_markup(snippet);
+			if (is_valid_word (current, name))
+			{
 			
-			item = GTK_SOURCE_COMPLETION_PROPOSAL (gtk_source_completion_item_new((gchar*)name,
-						       NULL,
-						       self->priv->proposal_icon,
-						       markup));
+				markup = get_item_info_markup(snippet);
+			
+				item = GTK_SOURCE_COMPLETION_PROPOSAL (gtk_source_completion_item_new((gchar*)name,
+							       NULL,
+							       self->priv->proposal_icon,
+							       markup));
 
-			g_object_set_data (G_OBJECT (item), "id", gsnippets_item_get_id(snippet));
+				g_object_set_data (G_OBJECT (item), "id", gsnippets_item_get_id(snippet));
 			
-			item_list = g_list_append(item_list,item);
-			g_free(markup);
+				item_list = g_list_append(item_list,item);
+				g_free(markup);
+				g_object_unref(snippet);
+			}
 			g_free(name);
-			g_object_unref(snippet);
 		}while((list_temp = g_slist_next(list_temp))!= NULL);
 		
 		g_slist_free(list);
